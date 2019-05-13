@@ -1,9 +1,11 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 DROP TABLE if EXISTS Characters;
 DROP TABLE if EXISTS Users;
 DROP TABLE if EXISTS Record;
 
 CREATE TABLE Characters (
-  CharacterID serial primary key,
+  characterID serial primary key,
   name varchar(255),
   intelligence int,
   strength int,
@@ -14,7 +16,7 @@ CREATE TABLE Characters (
   publisher varchar(255),
   alignment varchar(255),
   race varchar(255),
-  group-affiliation text,
+  groupAffiliation text,
   image_url text
 );
 
@@ -25,8 +27,8 @@ CREATE TABLE Users (
 
 CREATE TABLE Record (
   ID serial primary key,
-  CharacterID int references Characters(CharacterID),
+  charID int references Characters (characterID),
   wins int,
-  losses,
+  losses int,
   appearances int
 );

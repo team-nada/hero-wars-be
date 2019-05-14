@@ -12,7 +12,7 @@ const pg = require('pg');
 const app = express();
 
 // Server listens on port from .env file or port 3000 if non existant.
-const PORT = process.env.DATABASE_URL || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 // app.use(express.static('./public'));

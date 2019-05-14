@@ -40,17 +40,18 @@ function Characters(obj) {
   this.affiliation = obj.connections.groupAffiliation,
   this.smallImageURL = obj.images.sm,
   this.largeImageURL = obj.images.lg
-
-  console.log(this);
   
+  // console.log(this);
 }
 
 Characters.prototype = {
-  store: function() {
+  store: function (){
+    console.log('Storing data');
     const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
-    const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.smallImageURL, this.largeImageURL];
-    return client.query(insertStatement, values);
+    const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
+    client.query(insertStatement, values);
   }
+  
 }
 
 //Checks if the DB has data
@@ -67,15 +68,16 @@ function dbHasData(){
 
 //Calls the API and stores response in the database
 function callApi(){
+  console.log('Calling the API');
   const superHeroAPI = 'https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json';
   superagent.get(superHeroAPI)
     .then(result => {
       result.body.map((element) => {
-        console.log(element);
         let currentCharacter = new Characters(element);
-        currentCharacter.store;
+        // console.log('currentCharacter: ', currentCharacter);
+        currentCharacter.store();
       });
-    })
+    }).catch(console.error(error));
 }
 
 //Gets 10 characters from the DB
@@ -98,6 +100,7 @@ app.get('/test', (req, res) => {
 app.get('/', (req, res) => {
   try {
     if(!(dbHasData())){
+      console.log('We have no data');
       callApi();
     }
     let characters = getCharactersFromDb();

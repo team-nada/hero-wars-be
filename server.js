@@ -12,7 +12,7 @@ const pg = require('pg');
 const app = express();
 
 // Server listens on port from .env file or port 3000 if non existant.
-const PORT = process.envPORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 // app.use(express.static('./public'));
@@ -43,6 +43,15 @@ function Characters(obj) {
   characterData.push(this);
 }
 
+
+app.get('/test', (req, res) => {
+  try{
+    res.status(200).send('Test Success!');
+  } catch(e) {
+    res.status(500).send('Sorry, something went wrong with the test');
+  }
+})
+
 // Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
   try {
@@ -57,7 +66,7 @@ app.get('/', (req, res) => {
   } catch(e) {
     res.status(500).send('Sorry, something went wrong with the SuperHero API!');
   }
-  });
+});
 
 
 // Check if a route exists

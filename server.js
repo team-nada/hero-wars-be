@@ -47,7 +47,7 @@ Characters.prototype = {
     const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
     client.query(insertStatement, values);
   }
-  
+
 }
 
 //Checks if the DB has data
@@ -113,8 +113,8 @@ app.get('/', (req, res) => {
     }
   }
   ).then( () => {
-    getCharactersFromDb().then( characters => {
-      res.status(200).send(characters);
+    getCharactersFromDb().then( dbResult => {
+      res.status(200).send(dbResult.rows);
     }
     );
   }

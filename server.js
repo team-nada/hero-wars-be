@@ -22,6 +22,8 @@ const client = new pg.Client(process.env.DATABASE_URL);
 
 // Connect to PSQL Client
 client.connect();
+client.on('error', err => console.err(err));
+
 const characterData = [];
 
 function Characters(obj) {
@@ -40,9 +42,49 @@ function Characters(obj) {
   this.largeImageURL = obj.images.lg
 
   console.log(this);
-  characterData.push(this);
+  
 }
 
+Characters.prototype = {
+  store: function() {
+    const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
+    const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.smallImageURL, this.largeImageURL];
+    return client.query(insertStatement, values);
+  }
+}
+
+//Checks if the DB has data
+function dbHasData(){
+  const selectStatement = 'SELECT * FROM characters';
+  client.query(selectStatement).then( result => {
+    if(result.rowCount > 0){
+      return true;
+    }else {
+      return false;
+    }
+  });
+}
+
+//Calls the API and stores response in the database
+function callApi(){
+  const superHeroAPI = 'https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json';
+  superagent.get(superHeroAPI)
+    .then(result => {
+      result.body.map((element) => {
+        console.log(element);
+        let currentCharacter = new Characters(element);
+        currentCharacter.store;
+      });
+    })
+}
+
+//Gets 10 characters from the DB
+function getCharactersFromDb(){
+  //Return array of 10 characters (right now just returns 1)
+  const selectStatement = 'SELECT * FROM characters WHERE id = 1';
+  return client.query(selectStatement);
+
+}
 
 app.get('/test', (req, res) => {
   try{
@@ -55,18 +97,18 @@ app.get('/test', (req, res) => {
 // Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
   try {
-    const superHeroAPI = 'https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json';
-    superagent.get(superHeroAPI)
-      .then(result => {
-        result.body.map((element) => {
-          console.log(element);
-          new Characters(element);
-        });
-      })
+    if(!(dbHasData())){
+      callApi();
+    }
+    let characters = getCharactersFromDb();
+    res.status(200).send(characters);
+
   } catch(e) {
     res.status(500).send('Sorry, something went wrong with the SuperHero API!');
   }
 });
+
+
 
 
 // Check if a route exists

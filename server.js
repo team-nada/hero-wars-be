@@ -44,7 +44,7 @@ function Characters(obj) {
 }
 
 // Grabs data from API, iterates over the array and pushes to the constructor.
-app.get('/character', (req, res) => {
+app.get('/', (req, res) => {
   try {
     const superHeroAPI = 'https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json';
     superagent.get(superHeroAPI)

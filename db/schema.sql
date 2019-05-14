@@ -27,7 +27,6 @@ CREATE TABLE Users (
 
 CREATE TABLE Record (
   ID serial primary key,
-  charID int references Characters (characterID),
   wins int,
   losses int,
   appearances int

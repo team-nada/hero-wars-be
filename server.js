@@ -20,36 +20,44 @@ app.use(cors());
 // Set up os PSQL
 const client = new pg.Client(process.env.DATABASE_URL);
 
-// COnnect to PSQL Client
+// Connect to PSQL Client
 client.connect();
-
-const numberOfHeroes = 10;
+const characterData = [];
 
 function Characters(obj) {
-  this.name = obj.name;
-  this.intelligence = obj.powerstats;
-  // this.strength = obj.powerstats.strength;
-  // this.speed = obj.powerstats.speed;
-  // this.durability = obj.powerstats.durability;
-  // this.power = obj.powerstats.power;
-  // this.combat = obj.powerstats.combat;
-  // this.publisher = obj.biography.publisher;
-  // this.alignment = obj.biography.alignment;
-  // this.race = obj.appearance.race;
-  // this.affiliation = obj.connections;
-  // this.imageURL = obj.image.url;
+  this.name = obj.name
+  this.intelligence = obj.powerstats.intelligence,
+  this.strength = obj.powerstats.strength,
+  this.speed = obj.powerstats.speed,
+  this.durability = obj.powerstats.durability,
+  this.power = obj.powerstats.power,
+  this.combat = obj.powerstats.combat,
+  this.publisher = obj.biography.publisher,
+  this.alignment = obj.biography.alignment,
+  this.race = obj.appearance.race,
+  this.affiliation = obj.connections.groupAffiliation,
+  this.smallImageURL = obj.images.sm,
+  this.largeImageURL = obj.images.lg
+
+  console.log(this);
+  characterData.push(this);
 }
 
-
+// Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
-  for (let i = 0; i <= numberOfHeroes; i++){
-    let superHeroAPI = `https://superheroapi.com/api/${process.env.SUPERHERO_API}/${i}`;
-    superagent.get(superHeroAPI).end( (err, apiResponse) => {
-      let data = apiResponse.body;
-      new Characters(data);
-      console.log(data.powerstats);
+  try {
+    const superHeroAPI = 'https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json';
+    superagent.get(superHeroAPI)
+      .then(result => {
+        result.body.map((element) => {
+          console.log(element);
+          new Characters(element);
+        });
+      })
+  } catch(e) {
+    res.status(500).send('Sorry, something went wrong with the SuperHero API!');
+  }
   });
-}});
 
 
 // Check if a route exists

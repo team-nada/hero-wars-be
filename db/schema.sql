@@ -5,7 +5,7 @@ DROP TABLE if EXISTS Users;
 DROP TABLE if EXISTS Record;
 
 CREATE TABLE Characters (
-  characterID serial primary key,
+  ID serial primary key,
   name varchar(255),
   intelligence int,
   strength int,
@@ -27,7 +27,6 @@ CREATE TABLE Users (
 
 CREATE TABLE Record (
   ID serial primary key,
-  charID int references Characters (characterID),
   wins int,
   losses int,
   appearances int

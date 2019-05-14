@@ -1,11 +1,14 @@
 -- noinspection SqlNoDataSourceInspectionForFile
 
-DROP TABLE if EXISTS Characters;
 DROP TABLE if EXISTS Users;
 DROP TABLE if EXISTS Record;
+DROP TABLE if EXISTS Characters;
+DROP TABLE if EXISTS users;
+DROP TABLE if EXISTS record;
+DROP TABLE if EXISTS characters;
 
-CREATE TABLE Characters (
-  ID serial primary key,
+CREATE TABLE characters (
+  id serial primary key,
   name varchar(255),
   intelligence int,
   strength int,
@@ -20,15 +23,15 @@ CREATE TABLE Characters (
   image_url text
 );
 
-CREATE TABLE Users (
-  ID serial primary key,
+CREATE TABLE users (
+  id serial primary key,
   username varchar(255)
 );
 
-CREATE TABLE Record (
-  ID serial primary key,
+CREATE TABLE record (
+  id serial primary key,
   -- Foreign Key
-  character_ID INTEGER NOT NULL REFERENCES Characters(ID),
+  character_id INTEGER NOT NULL REFERENCES characters(ID),
   wins int,
   losses int,
   appearances int

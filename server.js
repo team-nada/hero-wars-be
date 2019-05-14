@@ -2,7 +2,6 @@
 
 require('dotenv').config();
 
-
 // Libraries imported thought NPM
 const express = require('express');
 const cors = require('cors');
@@ -24,8 +23,6 @@ const client = new pg.Client(process.env.DATABASE_URL);
 client.connect();
 client.on('error', err => console.err(err));
 
-const characterData = [];
-
 function Characters(obj) {
   this.name = obj.name
   this.intelligence = obj.powerstats.intelligence,
@@ -40,30 +37,30 @@ function Characters(obj) {
   this.affiliation = obj.connections.groupAffiliation,
   this.smallImageURL = obj.images.sm,
   this.largeImageURL = obj.images.lg
-  
-  // console.log(this);
+
 }
 
+//Stores the current characters data in the database
 Characters.prototype = {
   store: function (){
-    console.log('Storing data');
     const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
     const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
     client.query(insertStatement, values);
   }
-  
+
 }
 
 //Checks if the DB has data
 function dbHasData(){
   const selectStatement = 'SELECT * FROM characters';
-  client.query(selectStatement).then( result => {
-    if(result.rowCount > 0){
-      return true;
-    }else {
-      return false;
-    }
-  });
+  return client.query(selectStatement)
+    .then( result => {
+      if(result.rowCount > 0){
+        return true;
+      }else {
+        return false;
+      }
+    });
 }
 
 //Calls the API and stores response in the database
@@ -74,17 +71,22 @@ function callApi(){
     .then(result => {
       result.body.map((element) => {
         let currentCharacter = new Characters(element);
-        // console.log('currentCharacter: ', currentCharacter);
         currentCharacter.store();
       });
-    }).catch(console.error(error));
+    }).catch(error => console.error(error));
 }
 
-//Gets 10 characters from the DB
+//Gets 10 random characters from the DB
 function getCharactersFromDb(){
-  //Return array of 10 characters (right now just returns 1)
-  const selectStatement = 'SELECT * FROM characters WHERE id = 1';
-  return client.query(selectStatement);
+  try{
+    //Generate random number between 1 and 100,
+    const selectStatement = 'SELECT * FROM characters ORDER BY RANDOM() LIMIT 10;';
+    let heroes =  client.query(selectStatement);
+    return heroes;
+
+  }catch(e) {
+    console.error(e);
+  }
 
 }
 
@@ -98,21 +100,25 @@ app.get('/test', (req, res) => {
 
 // Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
-  try {
-    if(!(dbHasData())){
-      console.log('We have no data');
-      callApi();
+  dbHasData().then( result => {
+    if(!result){
+      console.log('We have no data. db check returns: ', result);
+      try{
+        callApi();
+        return result;
+      }catch(e) {
+        res.status(500).send('Sorry, something went wrong with the SuperHero API!');
+      }
     }
-    let characters = getCharactersFromDb();
-    res.status(200).send(characters);
-
-  } catch(e) {
-    res.status(500).send('Sorry, something went wrong with the SuperHero API!');
   }
+  ).then( () => {
+    getCharactersFromDb().then( dbResult => {
+      res.status(200).send(dbResult.rows);
+    }
+    );
+  }
+  );
 });
-
-
-
 
 // Check if a route exists
 app.use('*', (req, res) => res.send('Sorry, that route does not exist.'));

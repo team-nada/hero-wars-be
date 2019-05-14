@@ -76,13 +76,12 @@ function callApi(){
     }).catch(error => console.error(error));
 }
 
-//Gets 10 characters from the DB
+//Gets 10 random characters from the DB
 function getCharactersFromDb(){
   try{
-    //Return array of 10 characters (right now just returns 1)
-    const selectStatement = 'SELECT * FROM characters LIMIT 10;';
+    //Generate random number between 1 and 100,
+    const selectStatement = 'SELECT * FROM characters ORDER BY RANDOM() LIMIT 10;';
     let heroes =  client.query(selectStatement);
-    console.log('Returning hereos: ', heroes);
     return heroes;
 
   }catch(e) {

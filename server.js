@@ -78,9 +78,16 @@ function callApi(){
 
 //Gets 10 characters from the DB
 function getCharactersFromDb(){
-  //Return array of 10 characters (right now just returns 1)
-  const selectStatement = 'SELECT * FROM characters WHERE id = 1';
-  return client.query(selectStatement);
+  try{
+    //Return array of 10 characters (right now just returns 1)
+    const selectStatement = 'SELECT * FROM characters LIMIT 10;';
+    let heroes =  client.query(selectStatement);
+    console.log('Returning hereos: ', heroes);
+    return heroes;
+
+  }catch(e) {
+    console.error(e);
+  }
 
 }
 
@@ -106,15 +113,13 @@ app.get('/', (req, res) => {
     }
   }
   ).then( () => {
-    let characters = getCharactersFromDb();
-    res.status(200).send(characters);
+    getCharactersFromDb().then( characters => {
+      res.status(200).send(characters);
+    }
+    );
   }
   );
-  
 });
-
-
-
 
 // Check if a route exists
 app.use('*', (req, res) => res.send('Sorry, that route does not exist.'));

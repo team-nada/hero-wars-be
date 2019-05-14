@@ -41,25 +41,26 @@ function Characters(obj) {
 }
 
 //Stores the current characters data in the database
-// Characters.prototype = {
-//   store: function (){
-//     const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
-//     const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
-//     client.query(insertStatement, values);
-//   }
+Characters.prototype = {
+  store: function (){
+    const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
+    const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
+    client.query(insertStatement, values);
+  }
   
-// }
+}
 
 //Checks if the DB has data
 function dbHasData(){
   const selectStatement = 'SELECT * FROM characters';
-  client.query(selectStatement).then( result => {
-    if(result.rowCount > 0){
-      return true;
-    }else {
-      return false;
-    }
-  });
+  return client.query(selectStatement)
+    .then( result => {
+      if(result.rowCount > 0){
+        return true;
+      }else {
+        return false;
+      }
+    });
 }
 
 //Calls the API and stores response in the database
@@ -72,7 +73,7 @@ function callApi(){
         let currentCharacter = new Characters(element);
         currentCharacter.store();
       });
-    }).catch(console.error(error));
+    }).catch(error => console.error(error));
 }
 
 //Gets 10 characters from the DB
@@ -93,17 +94,23 @@ app.get('/test', (req, res) => {
 
 // Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
-  try {
-    if(!(dbHasData())){
-      console.log('We have no data');
-      callApi();
+  dbHasData().then( result => {
+    if(!result){
+      console.log('We have no data. db check returns: ', result);
+      try{
+        callApi();
+        return result;
+      }catch(e) {
+        res.status(500).send('Sorry, something went wrong with the SuperHero API!');
+      }
     }
+  }
+  ).then( () => {
     let characters = getCharactersFromDb();
     res.status(200).send(characters);
-
-  } catch(e) {
-    res.status(500).send('Sorry, something went wrong with the SuperHero API!');
   }
+  );
+  
 });
 
 

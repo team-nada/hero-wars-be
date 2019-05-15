@@ -45,6 +45,7 @@ Characters.prototype = {
   store: function (){
     const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
     const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
+    
     client.query(insertStatement, values);
   }
 

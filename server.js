@@ -24,7 +24,7 @@ client.connect();
 client.on('error', err => console.err(err));
 
 function Characters(obj) {
-  this.name = obj.name
+  this.name = obj.name,
   this.intelligence = obj.powerstats.intelligence,
   this.strength = obj.powerstats.strength,
   this.speed = obj.powerstats.speed,
@@ -37,7 +37,6 @@ function Characters(obj) {
   this.affiliation = obj.connections.groupAffiliation,
   this.smallImageURL = obj.images.sm,
   this.largeImageURL = obj.images.lg
-
 }
 
 //Stores the current characters data in the database
@@ -45,10 +44,8 @@ Characters.prototype = {
   store: function (){
     const insertStatement = 'INSERT INTO characters ( name, intelligence, strength, speed, durability, power, combat, publisher, alignment, race, groupAffiliation, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);';
     const values = [this.name, this.intelligence, this.strength, this.speed, this.durability, this.power, this.combat, this.publisher, this.alignment, this.race, this.affiliation, this.largeImageURL];
-    
     client.query(insertStatement, values);
   }
-
 }
 
 //Checks if the DB has data
@@ -78,17 +75,15 @@ function callApi(){
 }
 
 //Gets 10 random characters from the DB
-function getCharactersFromDb(){
+function getCharactersFromDb(limitItem){
   try{
-    //Generate random number between 1 and 100,
-    const selectStatement = 'SELECT * FROM characters ORDER BY RANDOM() LIMIT 10;';
+    const selectStatement = `SELECT * FROM characters ORDER BY RANDOM() LIMIT ${limitItem};`;
     let heroes =  client.query(selectStatement);
     return heroes;
 
   }catch(e) {
     console.error(e);
   }
-
 }
 
 app.get('/test', (req, res) => {
@@ -97,7 +92,7 @@ app.get('/test', (req, res) => {
   } catch(e) {
     res.status(500).send('Sorry, something went wrong with the test');
   }
-})
+});
 
 // Grabs data from API, iterates over the array and pushes to the constructor.
 app.get('/', (req, res) => {
@@ -111,15 +106,71 @@ app.get('/', (req, res) => {
         res.status(500).send('Sorry, something went wrong with the SuperHero API!');
       }
     }
-  }
-  ).then( () => {
-    getCharactersFromDb().then( dbResult => {
+  }).then( () => {
+    getCharactersFromDb(10).then( dbResult => {
       res.status(200).send(dbResult.rows);
-    }
-    );
-  }
-  );
+    });
+  });
 });
+
+//Send all characters fromt he DB to allow updates / deletes
+app.get('/listcharacter', (req, res) => {
+  dbHasData().then( result => {
+    if(!result){
+      console.log('We have no data. db check returns: ', result);
+      try{
+        callApi();
+        return result;
+      }catch(e) {
+        res.status(500).send('Sorry, something went wrong with the SuperHero API!');
+      }
+    }
+  }).then( () => {
+    getCharactersFromDb(null).then( dbResult => {
+      res.status(200).send(dbResult.rows);
+    });
+  });
+});
+
+// Route to allow a Hero to be added to the database
+// Need to pull in information from FR Form.
+app.get('/add', (req, res) => {
+  try {
+    // Testing
+    let tempValue = {
+      name: 'Roger',
+      powerstats: { intelligence: 50,
+                    strength: 50,
+                    speed: 50,
+                    durability: 50,
+                    power: 50,
+                    combat: 50},
+                    appearance: { gender: 'Male',
+                                  race: 'Human',
+                                  biography: {publisher: 'Marvel Comics',
+                                              alignment: 'good'},
+                                              connections: {groupAffiliation: 'House-Huba'},
+                                              images: {lg: 'https://pbs.twimg.com/profile_images/2414356616/image_400x400.jpg'}}};
+    let currentCharacter = new Characters(tempValue);
+    console.log(tempValue);
+    currentCharacter.store()
+    res.status(200).send('Hero Added to Database');
+  } catch(e) {
+    res.status(500).send('There was an issue with the Add');
+
+  }
+});
+
+// Route to delete a Hero from the database
+// app.get('/delete', (req, res, id) => {
+//   try {
+//     let deleteStatement = `DELETE FROM character where id=${id};`;
+//     client.query(deleteStatement)
+//       res.redirect('/update');
+//   } catch(e) {
+//       res.status(500).send('Sorry, something went wrong with the SuperHero API!');
+//   };
+// });
 
 // Check if a route exists
 app.use('*', (req, res) => res.send('Sorry, that route does not exist.'));
